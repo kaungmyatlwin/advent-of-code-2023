@@ -26,41 +26,33 @@ func extractNumbersFromNumerals(s string) []int {
 		"eight": 8,
 		"nine":  9,
 	}
-
-	regexpStr := ""
+	numeralRegExpStr := ""
 	intSlice := []int{}
 
 	for k, _ := range numerals {
-		regexpStr += k + "|"
+		numeralRegExpStr += k + "|"
 	}
 
-	numeralsArr := regexp.MustCompile(regexpStr+"([0-9])").FindAllString(s, -1)
+	for i := 0; i < len(s); i++ {
+		numeralsArr := regexp.MustCompile("^("+numeralRegExpStr+"[0-9])").FindAllString(s[i:], -1)
 
-	for _, k := range numeralsArr {
-		num := numerals[strings.ToLower(k)]
+		if len(numeralsArr) > 0 {
+			foundNumeral := numeralsArr[0]
+			num, convErr := strconv.Atoi(foundNumeral)
 
-		if num == 0 {
-			kValArr := strings.Split(k, "")
-			kVal := kValArr[len(kValArr)-1]
-			i, _ := strconv.Atoi(kVal)
-
-			intSlice = append(intSlice, i)
-		} else {
-			intSlice = append(intSlice, num)
+			if convErr == nil {
+				intSlice = append(intSlice, num)
+			} else {
+				intSlice = append(intSlice, numerals[foundNumeral])
+			}
 		}
 	}
 
 	return intSlice
 }
 
-func findCalibration() int {
-	fileBuf, error := os.ReadFile("input.txt")
-
-	check(error)
-
-	fileContent := string(fileBuf)
-
-	lines := strings.Split(fileContent, "\n")
+func findCalibration(content string) int {
+	lines := strings.Split(content, "\n")
 
 	total := 0
 
@@ -71,7 +63,6 @@ func findCalibration() int {
 		lastDigit := intSlice[len(intSlice)-1]
 
 		finalDigits, _ := strconv.Atoi(fmt.Sprintf("%d%d", firstDigit, lastDigit))
-		fmt.Println(line, intSlice, firstDigit, lastDigit, finalDigits, total)
 
 		total += finalDigits
 	}
@@ -80,7 +71,12 @@ func findCalibration() int {
 }
 
 func main() {
-	result := findCalibration()
+	fileBuf, error := os.ReadFile("input.txt")
+	fileContent := string(fileBuf)
+
+	check(error)
+
+	result := findCalibration(fileContent)
 
 	fmt.Println(result)
 }
